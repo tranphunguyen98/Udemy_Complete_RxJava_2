@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.rxbinding3.widget.RxTextView;
+import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 import com.tranphunguyen.todolist.adapter.RecyclerTouchListener;
 import com.tranphunguyen.todolist.adapter.ToDoListAdapter;
 import com.tranphunguyen.todolist.data.ToDoDataManager;
@@ -172,27 +174,37 @@ public class TodolistFragment extends Fragment {
         setRecyclerView();
         loadData();
 
-        searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        RxTextView.textChangeEvents(searchEditText)
+                .skipInitialValue()
+                .debounce(300,TimeUnit.MILLISECONDS)
+                .distinctUntilChanged()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new Observer<TextViewTextChangeEvent>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
-            }
+                    }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    @Override
+                    public void onNext(TextViewTextChangeEvent textViewTextChangeEvent) {
 
-            }
+                        Log.d("TestText",textViewTextChangeEvent.getText().toString() );
 
-            @Override
-            public void afterTextChanged(Editable s) {
+                        goalAdapter.getFilter().filter(textViewTextChangeEvent.getText().toString());
 
-                Log.d("Test",s.toString());
+                    }
 
-                goalAdapter.getFilter().filter(s.toString());
+                    @Override
+                    public void onError(Throwable e) {
 
+                    }
 
-            }
-        });
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
 
         return view;
 
