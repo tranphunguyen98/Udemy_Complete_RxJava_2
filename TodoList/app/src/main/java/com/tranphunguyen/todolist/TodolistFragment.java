@@ -13,6 +13,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.tranphunguyen.todolist.adapter.RecyclerTouchListener;
 import com.tranphunguyen.todolist.adapter.ToDoListAdapter;
 import com.tranphunguyen.todolist.data.ToDoDataManager;
@@ -28,6 +30,18 @@ import com.tranphunguyen.todolist.data.ToDoListItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subscribers.DisposableSubscriber;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -64,7 +78,7 @@ public class TodolistFragment extends Fragment {
     private View view;
     private TextView searchEditText;
 
-
+    private CompositeDisposable disposable = new CompositeDisposable();
 
     public TodolistFragment() {
         // Required empty public constructor
@@ -107,7 +121,7 @@ public class TodolistFragment extends Fragment {
 
         view = inflater.inflate(R.layout.fragment_todolist, container, false);
         fabAddNewToDo = view.findViewById(R.id.fab_addNewToDo);
-        searchEditText=view.findViewById(R.id.todo_search);
+        searchEditText = view.findViewById(R.id.todo_search);
 
         recyclerViewAchievingGoals = view.findViewById(R.id.recycler_view_achieving_goals);
 
@@ -155,9 +169,6 @@ public class TodolistFragment extends Fragment {
 
         setRecyclerView();
         loadData();
-
-
-
 
 
         return view;
@@ -230,12 +241,58 @@ public class TodolistFragment extends Fragment {
 
     private void loadData() {
 
+        Observable<ToDoListItem> observable = Observable.fromArray(
+                toDoDataManager.getAllToDoListItem_list().toArray(new ToDoListItem[0])
+        );
+        disposable.add(
+                observable
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .filter(new Predicate<ToDoListItem>() {
+                            @Override
+                            public boolean test(ToDoListItem toDoListItem) throws Exception {
+                                return toDoListItem.getToDoListItemStatus().equals(taskStatus);
+                            }
+                        })
+                        .map(new Function<ToDoListItem, ToDoListItem>() {
+                            @Override
+                            public ToDoListItem apply(ToDoListItem toDoListItem) throws Exception {
 
+                                toDoListItem.setToDoListItemDescription(dateFront + " " + toDoListItem.getToDoListItemPlanedAchievDate());
 
+                                return toDoListItem;
+                            }
+                        })
+                        .subscribeWith(new DisposableObserver<ToDoListItem>() {
+                            @Override
+                            public void onNext(ToDoListItem toDoListItem) {
+
+                                Log.d("Test", toDoListItem.getToDoListItemName());
+                                goalsList.add(toDoListItem);
+
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+                               goalAdapter.notifyDataSetChanged();
+
+                            }
+                        })
+        );
 
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        disposable.clear();
+    }
 
     public void markAsAchieved(int position) {
 
@@ -355,7 +412,6 @@ public class TodolistFragment extends Fragment {
         updateTasksFragment.show(oFragmentManager, "Sample Fragment");
 
     }
-
 
 
 }
