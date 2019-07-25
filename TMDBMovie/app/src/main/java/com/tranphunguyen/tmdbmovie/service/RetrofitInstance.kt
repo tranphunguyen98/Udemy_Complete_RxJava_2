@@ -1,16 +1,20 @@
 package com.tranphunguyen.tmdbmovie.service
 
+import android.util.Log
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitInstance {
     companion object {
-        val instance: RetrofitInstance by lazy {
-            val retrofit = retrofit2.Retrofit.Builder()
+        val instance: MovieService by lazy {
+
+            Log.d("TestSingleTon", "Đã tạo !!!!!")
+
+            val retrofit = Retrofit.Builder()
                 .baseUrl("https://api.themoviedb.org/3/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-            retrofit.create(RetrofitInstance::class.java)
+            retrofit.create(MovieService::class.java)
         }
     }
 
