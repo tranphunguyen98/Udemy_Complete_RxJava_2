@@ -11,7 +11,7 @@ import retrofit2.http.Query
 interface MovieService {
 
     @GET("movie/popular")
-    fun getPopularMovies(@Query("api_key") apiKey: String): Call<MovieDBResponse>
+    fun getPopularMovies(@Query("page") page: Int, @Query("api_key") apiKey: String): Call<MovieDBResponse>
 
     companion object {
         val instance: MovieService by lazy {
