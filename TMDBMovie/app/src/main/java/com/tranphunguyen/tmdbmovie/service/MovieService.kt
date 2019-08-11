@@ -22,6 +22,7 @@ interface MovieService {
                 .baseUrl("https://api.themoviedb.org/3/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
+
             retrofit.create(MovieService::class.java)
         }
     }

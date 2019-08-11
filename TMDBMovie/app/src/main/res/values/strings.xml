@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">TMDB Movie</string>
     <string name="api_key">3e8e250e9d20db7a41ad86ed088149cb</string>
+    <string name="api_key1">iYBMdaCGRPASNOrwqOKeyXrGWf4gAQ7i86wEAjgL</string>
 </resources>
