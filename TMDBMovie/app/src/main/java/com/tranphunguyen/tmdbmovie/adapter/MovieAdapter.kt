@@ -5,9 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
-import com.tranphunguyen.tmdbmovie.R
 import com.tranphunguyen.tmdbmovie.model.Movie
 import kotlinx.android.synthetic.main.movie_list_item.view.*
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+
 
 /**
  * Created by Trần Phú Nguyện on 7/25/2019.
@@ -16,7 +19,7 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Movie
 
     override fun onCreateViewHolder(p0: ViewGroup, p1: Int): MoviewHolder {
 
-        val view = LayoutInflater.from(p0.context).inflate(R.layout.movie_list_item,p0,false)
+        val view = LayoutInflater.from(p0.context).inflate(com.tranphunguyen.tmdbmovie.R.layout.movie_list_item,p0,false)
 
         return MoviewHolder(view)
 
@@ -31,9 +34,15 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Movie
 
         val pathImage = "https://image.tmdb.org/t/p/w500${listMovie[position].poster_path}"
 
+
+        val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
+
         Glide
             .with(holder.itemView.context)
             .load(pathImage)
+            .transition(withCrossFade(factory))
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(com.tranphunguyen.tmdbmovie.R.color.placeholder_bg)
             .into(holder.ivMovie)
 
     }

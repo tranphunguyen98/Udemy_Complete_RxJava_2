@@ -11,6 +11,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.GridLayoutManager
+import android.view.View
 import com.tranphunguyen.tmdbmovie.adapter.MovieAdapter
 import com.tranphunguyen.tmdbmovie.model.Movie
 import kotlinx.android.synthetic.main.activity_main.*
@@ -85,7 +86,19 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = movieAdapter
         movieAdapter.notifyDataSetChanged()
 
+        shimmer_view_container.stopShimmer()
+        shimmer_view_container.visibility = View.GONE
         refresh.isRefreshing = false
 
     }
+
+    override fun onResume() {
+        super.onResume()
+        shimmer_view_container.startShimmer()
+    }
+
+//    override fun onPause() {
+//        super.onPause()
+//        shimmer_view_container.stopShimmer()
+//    }
 }
