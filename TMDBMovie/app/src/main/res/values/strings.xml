@@ -2,4 +2,15 @@
     <string name="app_name">TMDB Movie</string>
     <string name="api_key">3e8e250e9d20db7a41ad86ed088149cb</string>
     <string name="api_key1">iYBMdaCGRPASNOrwqOKeyXrGWf4gAQ7i86wEAjgL</string>
+    <string name="label_search">Tìm kiếm phim</string>
+    <string name="hint_search">Nhập tên phim</string>
+
+
+    <string-array name="query_suggestions">
+        <item>Furniture</item>
+        <item>Women Fashion</item>
+        <item>Hotels</item>
+        <item>Man Fashion</item>
+        <item>Electronics Appliances</item>
+    </string-array>
 </resources>

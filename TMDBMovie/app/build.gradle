@@ -54,5 +54,7 @@ dependencies {
     implementation 'com.facebook.shimmer:shimmer:0.4.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.6.1'
 
+    implementation'com.miguelcatalan:materialsearchview:1.4.0'
+
 
 }
