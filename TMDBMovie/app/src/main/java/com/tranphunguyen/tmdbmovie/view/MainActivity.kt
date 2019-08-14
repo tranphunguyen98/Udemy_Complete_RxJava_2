@@ -3,121 +3,158 @@ package com.tranphunguyen.tmdbmovie.view
 import android.content.res.Configuration
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.tranphunguyen.tmdbmovie.R
-import com.tranphunguyen.tmdbmovie.model.MovieDBResponse
 import com.tranphunguyen.tmdbmovie.service.MovieService
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.GridLayoutManager
+import android.util.Log
 import android.view.View
 import com.tranphunguyen.tmdbmovie.adapter.MovieAdapter
 import com.tranphunguyen.tmdbmovie.adapter.MovieAdapter.*
 import com.tranphunguyen.tmdbmovie.model.Movie
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.observers.DisposableObserver
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import com.tranphunguyen.tmdbmovie.model.MovieDBResponse
 
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var movieAdapter: MovieAdapter
-    private var page = 0
+    private val movieAdapter = MovieAdapter(ArrayList())
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    val service = MovieService.instance
+
+    //    private var call: Call<MovieDBResponse>? = null
+    private lateinit var movieResObservable: Observable<MovieDBResponse>
+
+    private val compositeDisposable = CompositeDisposable()
+
+    private var page = 1
+
+    override
+    fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(com.tranphunguyen.tmdbmovie.R.layout.activity_main)
 
-        getPopularMovie()
+        getPopularMovieWithRx()
 
-        refresh.setColorSchemeResources(R.color.colorPrimary)
+        refresh.setColorSchemeResources(com.tranphunguyen.tmdbmovie.R.color.colorPrimary)
         refresh.setOnRefreshListener {
 
-            getPopularMovie()
+            getPopularMovieWithRx()
 
         }
 
-        movieAdapter = MovieAdapter(ArrayList())
+        movieAdapter.setOnLoadingProgressBar(object : OnLoadingProgressBar {
+            override fun onLoading() {
+
+                progressbar.visibility = View.VISIBLE
+            }
+        })
 
         movieAdapter.setOnLoadMoreListener(object : OnLoadMoreListener {
             override fun onLoadMore() {
 
-                movieAdapter.listMovie.add(null)
-                movieAdapter.listMovie.add(null)
 
-                movieAdapter.notifyItemInserted(movieAdapter.listMovie.size - 1)
                 addPopularMovie()
-
             }
         })
+
 
     }
 
-    fun getPopularMovie() {
+//    private fun getPopularMovie() {
+//
+//        page++
+//
+//        val service = MovieService.instance
+//
+//        call = service.getPopularMovies(page, this.getString(R.string.api_key))
+//
+//        call?.enqueue(object : Callback<MovieDBResponse> {
+//            override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
+//
+//            }
+//
+//            override fun onResponse(call: Call<MovieDBResponse>, response: Response<MovieDBResponse>) {
+//
+//                val movieDBResponse = response.body()
+//
+//                movieDBResponse?.results?.let {
+//                    showOnRecyclerView(it)
+//                }
+//
+//            }
+//
+//        })
+//
+//    }
 
-        page++
 
-        val service = MovieService.instance
+    private fun getPopularMovieWithRx() {
 
-        val call = service.getPopularMovies(page,this.getString(R.string.api_key))
+        compositeDisposable.add(
+            service
+                .getPopularMoviesWithRx(1, this.getString(com.tranphunguyen.tmdbmovie.R.string.api_key))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
+                .subscribeWith(object : DisposableObserver<Movie>() {
+                    override fun onComplete() {
+                        showOnRecyclerView()
+                    }
 
-        call.enqueue(object : Callback<MovieDBResponse> {
-            override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
+                    override fun onNext(movie: Movie) {
+                        movieAdapter.listMovie.add(movie)
+                    }
 
-            }
+                    override fun onError(e: Throwable) {
+                    }
 
-            override fun onResponse(call: Call<MovieDBResponse>, response: Response<MovieDBResponse>) {
+                })
+        )
 
-                val movieDBResponse = response.body()
-
-                movieDBResponse?.results?.let {
-                    showOnRecyclerView(it)
-                }
-
-            }
-
-        })
-
+        Log.d("checkComposite", compositeDisposable.size().toString())
     }
 
     fun addPopularMovie() {
 
+        compositeDisposable.add(
+            service
+                .getPopularMoviesWithRx(page, this.getString(com.tranphunguyen.tmdbmovie.R.string.api_key))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
+                .subscribeWith(object : DisposableObserver<Movie>() {
+                    override fun onComplete() {
+
+                        progressbar.visibility = View.GONE
+
+                        movieAdapter.notifyItemInserted(movieAdapter.listMovie.size - 1)
+                        movieAdapter.setLoaded()
+                        movieAdapter.setLoadedProgressBar()
+                    }
+
+                    override fun onNext(movie: Movie) {
+                        movieAdapter.listMovie.add(movie)
+                    }
+
+                    override fun onError(e: Throwable) {
+                    }
+
+                })
+        )
+
         page++
 
-        val service = MovieService.instance
+        Log.d("checkComposite", compositeDisposable.size().toString())
 
-        val call = service.getPopularMovies(page,this.getString(R.string.api_key))
-
-        call.enqueue(object : Callback<MovieDBResponse> {
-            override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
-
-            }
-
-            override fun onResponse(call: Call<MovieDBResponse>, response: Response<MovieDBResponse>) {
-
-                val movieDBResponse = response.body()
-
-                movieDBResponse?.results?.let {
-
-                    movieAdapter.remove(movieAdapter.listMovie.size - 1)
-                    movieAdapter.notifyItemRemoved(movieAdapter.listMovie.size)
-
-                    movieAdapter.remove(movieAdapter.listMovie.size - 1)
-                    movieAdapter.notifyItemRemoved(movieAdapter.listMovie.size)
-
-                    movieAdapter.listMovie.addAll(it)
-                    movieAdapter.notifyDataSetChanged()
-                    movieAdapter.setLoaded()
-                }
-
-            }
-
-        })
 
     }
 
-    private fun showOnRecyclerView(movies: ArrayList<Movie>) {
-
-        movieAdapter.listMovie = movies as ArrayList<Movie?>
+    private fun showOnRecyclerView() {
 
         if (this.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
 
@@ -148,4 +185,16 @@ class MainActivity : AppCompatActivity() {
 //        super.onPause()
 //        shimmer_view_container.stopShimmer()
 //    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        compositeDisposable.clear()
+
+//        call?.let {
+//            if(it.isExecuted)
+//                it.cancel()
+//        }
+
+    }
 }

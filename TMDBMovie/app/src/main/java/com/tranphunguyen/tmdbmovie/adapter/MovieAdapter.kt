@@ -21,22 +21,27 @@ import kotlinx.android.synthetic.main.item_progressbar.view.*
 /**
  * Created by Trần Phú Nguyện on 7/25/2019.
  */
-class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     // for load more
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
     private var onLoadMoreListener: OnLoadMoreListener? = null
+    private var onLoadingProgressBar: OnLoadingProgressBar? = null
 
     // The minimum amount of items to have below your current scroll position
     // before loading more.
     private var isLoading: Boolean = false
+    private var isLoadingProgressBar: Boolean = false
     private val visibleThreshold = 5
     private var lastVisibleItem: Int = 0
     private var totalItemCount: Int = 0
 
     interface OnLoadMoreListener {
         fun onLoadMore()
+    }
+    interface OnLoadingProgressBar {
+        fun onLoading()
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -51,14 +56,19 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
                 totalItemCount = linearLayoutManager.itemCount
                 lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition()
 
-                Log.d("checkRecyclerViewNot", "$totalItemCount $lastVisibleItem $visibleThreshold ")
-
-                if(!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold) ) {
-
-                    Log.d("checkRecyclerView", "$totalItemCount $lastVisibleItem $visibleThreshold ")
+                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
 
                     onLoadMoreListener?.onLoadMore()
+
                     isLoading = true
+
+                }
+
+                if(!isLoadingProgressBar && lastVisibleItem + 1 >= totalItemCount  ) {
+
+                    onLoadingProgressBar?.onLoading()
+
+                    isLoadingProgressBar = true
 
                 }
 
@@ -68,22 +78,23 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
 
     override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
-        when(viewType) {
+        when (viewType) {
 
             VIEW_TYPE_LOADING -> {
 
-                val view = LayoutInflater.from(p0.context).inflate(com.tranphunguyen.tmdbmovie.R.layout.item_progressbar,p0,false)
+                val view = LayoutInflater.from(p0.context)
+                    .inflate(com.tranphunguyen.tmdbmovie.R.layout.item_progressbar, p0, false)
                 return ViewHolderLoading(view)
 
             }
 
             else -> {
 
-                val view = LayoutInflater.from(p0.context).inflate(com.tranphunguyen.tmdbmovie.R.layout.movie_list_item,p0,false)
+                val view = LayoutInflater.from(p0.context)
+                    .inflate(com.tranphunguyen.tmdbmovie.R.layout.movie_list_item, p0, false)
                 return MoviewHolder(view)
 
             }
-
 
 
         }
@@ -96,6 +107,10 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
 
     }
 
+    fun setLoadedProgressBar() {
+        isLoadingProgressBar = false
+    }
+
     fun remove(position: Int) {
         listMovie.removeAt(position)
         notifyItemRemoved(position)
@@ -104,7 +119,8 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
     override fun getItemCount(): Int = listMovie.size
 
     override fun getItemViewType(position: Int): Int {
-        return if (listMovie[position] == null) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
+//        return if (listMovie[position] == null) VIEW_TYPE_LOADING else VIEW_TYPE_ITEM
+        return VIEW_TYPE_ITEM
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -112,8 +128,8 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
         when (holder) {
 
             is MoviewHolder -> {
-                holder.tvTitle.text = listMovie[position]?.title
-                holder.tvRating.text = listMovie[position]?.vote_average.toString()
+                holder.tvTitle.text = listMovie[position].title
+                holder.tvRating.text = listMovie[position].vote_average.toString()
 
                 val pathImage = "https://image.tmdb.org/t/p/w500${listMovie[position]?.poster_path}"
 
@@ -144,6 +160,12 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
 
     }
 
+    fun setOnLoadingProgressBar(mOnLoadingProgressBar: OnLoadingProgressBar) {
+
+        this.onLoadingProgressBar = mOnLoadingProgressBar
+
+    }
+
     private inner class ViewHolderLoading(view: View) : RecyclerView.ViewHolder(view) {
 
         val progressBar = view.progressbar
@@ -160,9 +182,9 @@ class MovieAdapter(var listMovie: ArrayList<Movie?>) : RecyclerView.Adapter<Recy
 
                 val position = this.adapterPosition
 
-                if(position != RecyclerView.NO_POSITION) {
+                if (position != RecyclerView.NO_POSITION) {
 
-                    val intent = Intent(view.context,MovieActivity::class.java)
+                    val intent = Intent(view.context, MovieActivity::class.java)
 
                     val currentMovie = listMovie[position]
 

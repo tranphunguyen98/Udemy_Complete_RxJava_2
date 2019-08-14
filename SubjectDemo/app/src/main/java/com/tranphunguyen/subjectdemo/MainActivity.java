@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 //        Lấy cái cuối
-//        asyncSubjectDemo1();
+        asyncSubjectDemo1();
 //        asyncSubjectDemo2();
 
 //        Lấy từ khi subscribe và 1 cái gần nhất
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        Lấy tất cả
 //        replaySubjectDemo1();
-        replaySubjectDemo2();
+//        replaySubjectDemo2();
 
     }
 
@@ -49,13 +49,24 @@ public class MainActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
 
+
+
         AsyncSubject<String> asyncSubject = AsyncSubject.create();
 
-        observable.subscribe(asyncSubject);
+
+
+        Observable<String> observable1 = Observable.just("JAVA1231231", "KO123TLIN1", "XML1123", "JSO123N1")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        observable1.subscribe(asyncSubject);
 
         asyncSubject.subscribe(getFirstObserver());
-        asyncSubject.subscribe(getSecondObserver());
-        asyncSubject.subscribe(getThirdObserver());
+//        asyncSubject.subscribe(getSecondObserver());
+//        asyncSubject.subscribe(getThirdObserver());
+
+        asyncSubject.onNext();
+
 
 
     }
@@ -175,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
         replaySubject.subscribe(getFirstObserver());
         replaySubject.subscribe(getSecondObserver());
         replaySubject.subscribe(getThirdObserver());
-
 
     }
 
