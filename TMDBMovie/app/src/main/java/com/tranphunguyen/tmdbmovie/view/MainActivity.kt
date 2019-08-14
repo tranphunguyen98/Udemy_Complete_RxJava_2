@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
+                .filter { movie -> movie.vote_average > 7.0 }
                 .subscribeWith(object : DisposableObserver<Movie>() {
                     override fun onComplete() {
                         showOnRecyclerView()
@@ -127,6 +128,7 @@ class MainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
+                .filter { movie -> movie.vote_average > 7.0 }
                 .subscribeWith(object : DisposableObserver<Movie>() {
                     override fun onComplete() {
 
