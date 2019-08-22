@@ -1,7 +1,6 @@
 package com.tranphunguyen.contactmanager
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.Menu
@@ -15,10 +14,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 
 import com.tranphunguyen.contactmanager.adapter.ContactsAdapter
-import com.tranphunguyen.contactmanager.db.DatabaseHelper
 import com.tranphunguyen.contactmanager.db.entity.Contact
+import com.tranphunguyen.contactmanager.db.ContactsAppDatabase
 import kotlinx.android.synthetic.main.activity_main111111111111.*
 
 import java.util.ArrayList
@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
     private var contactsAdapter: ContactsAdapter? = null
     private val contactArrayList = ArrayList<Contact>()
     private lateinit var recyclerView: RecyclerView
-    private lateinit var db: DatabaseHelper
+
+    private lateinit var contactAppDatabase: ContactsAppDatabase
+//    private lateinit var db: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +41,16 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recycler_view_contacts)
 
-        db = DatabaseHelper(this)
+        contactAppDatabase = Room.databaseBuilder(
+            applicationContext,
+            ContactsAppDatabase::class.java,
+            "ContactDB"
+        ).allowMainThreadQueries().build()
 
-        contactArrayList.addAll(db.allContacts)
+//        db = DatabaseHelper(this)
+
+//        contactArrayList.addAll(db.allContacts)
+        contactArrayList.addAll(contactAppDatabase.getContactDAO().getContacts())
 
         contactsAdapter = ContactsAdapter(contactArrayList)
         val mLayoutManager = LinearLayoutManager(applicationContext)
@@ -132,7 +141,8 @@ class MainActivity : AppCompatActivity() {
     private fun deleteContact(contact: Contact, position: Int) {
 
         contactArrayList.removeAt(position)
-        db.deleteContact(contact)
+//        db.deleteContact(contact)
+        contactAppDatabase.getContactDAO().deleteContact(contact)
         contactsAdapter!!.notifyDataSetChanged()
     }
 
@@ -143,7 +153,8 @@ class MainActivity : AppCompatActivity() {
         contact.name = name
         contact.email = email
 
-        db.updateContact(contact)
+//        db.updateContact(contact)
+        contactAppDatabase.getContactDAO().updateContact(contact)
 
         contactArrayList[position] = contact
 
@@ -154,11 +165,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun createContact(name: String, email: String) {
 
-        val id = db.insertContact(name, email)
+//        val id = db.insertContact(name, email)
+        val id = contactAppDatabase.getContactDAO().addContact(Contact(name,email,0))
 
-
-        val contact = db.getContact(id)
-
+        //        val contact = db.getContact(id)
+        val contact = contactAppDatabase.getContactDAO().getContact(id)
 
         contactArrayList.add(0, contact)
         contactsAdapter!!.notifyDataSetChanged()
