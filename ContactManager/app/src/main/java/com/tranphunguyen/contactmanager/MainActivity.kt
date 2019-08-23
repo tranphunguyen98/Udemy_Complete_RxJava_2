@@ -1,7 +1,9 @@
 package com.tranphunguyen.contactmanager
 
+import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -19,9 +21,14 @@ import androidx.room.Room
 import com.tranphunguyen.contactmanager.adapter.ContactsAdapter
 import com.tranphunguyen.contactmanager.db.entity.Contact
 import com.tranphunguyen.contactmanager.db.ContactsAppDatabase
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main111111111111.*
 
 import java.util.ArrayList
+import java.util.function.Consumer
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
 
     private lateinit var contactAppDatabase: ContactsAppDatabase
+
+    private val composite = CompositeDisposable()
 //    private lateinit var db: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +59,35 @@ class MainActivity : AppCompatActivity() {
 //        db = DatabaseHelper(this)
 
 //        contactArrayList.addAll(db.allContacts)
-        contactArrayList.addAll(contactAppDatabase.getContactDAO().getContacts())
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            composite.add(
+                contactAppDatabase.getContactDAO().getContacts()
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        { contacts ->
+
+                            Log.d("TestRx", contacts.size.toString() + contacts[0].name)
+                            contactArrayList.clear()
+                            contactArrayList.addAll(contacts)
+
+                            contactsAdapter!!.notifyDataSetChanged()
+                        },
+                        {
+
+                        }
+                    )
+//                    .subscribe(object : Consumer<List<Contact>> {
+//                        override fun accept(contacts: List<Contact>) {
+//
+//
+//
+//                        }
+//
+//                    })
+            )
+        }
 
         contactsAdapter = ContactsAdapter(contactArrayList)
         val mLayoutManager = LinearLayoutManager(applicationContext)
@@ -140,10 +177,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteContact(contact: Contact, position: Int) {
 
-        contactArrayList.removeAt(position)
+//        contactArrayList.removeAt(position)
 //        db.deleteContact(contact)
         contactAppDatabase.getContactDAO().deleteContact(contact)
-        contactsAdapter!!.notifyDataSetChanged()
+//        contactsAdapter!!.notifyDataSetChanged()
     }
 
     private fun updateContact(name: String, email: String, position: Int) {
@@ -156,9 +193,9 @@ class MainActivity : AppCompatActivity() {
 //        db.updateContact(contact)
         contactAppDatabase.getContactDAO().updateContact(contact)
 
-        contactArrayList[position] = contact
+//        contactArrayList[position] = contact
 
-        contactsAdapter?.notifyDataSetChanged()
+//        contactsAdapter?.notifyDataSetChanged()
 
 
     }
@@ -166,14 +203,20 @@ class MainActivity : AppCompatActivity() {
     private fun createContact(name: String, email: String) {
 
 //        val id = db.insertContact(name, email)
-        val id = contactAppDatabase.getContactDAO().addContact(Contact(name,email,0))
+        val id = contactAppDatabase.getContactDAO().addContact(Contact(name, email, 0))
 
         //        val contact = db.getContact(id)
-        val contact = contactAppDatabase.getContactDAO().getContact(id)
+//        val contact = contactAppDatabase.getContactDAO().getContact(id)
+//
+//        contactArrayList.add(0, contact)
+//        contactsAdapter!!.notifyDataSetChanged()
 
-        contactArrayList.add(0, contact)
-        contactsAdapter!!.notifyDataSetChanged()
 
+    }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        composite.dispose()
     }
 }
