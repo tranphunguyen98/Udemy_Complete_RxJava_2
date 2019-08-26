@@ -21,13 +21,13 @@ import androidx.room.Room
 import com.tranphunguyen.contactmanager.adapter.ContactsAdapter
 import com.tranphunguyen.contactmanager.db.entity.Contact
 import com.tranphunguyen.contactmanager.db.ContactsAppDatabase
+import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main111111111111.*
+import kotlinx.android.synthetic.main.activity_main.*
 
 import java.util.ArrayList
-import java.util.function.Consumer
 
 
 class MainActivity : AppCompatActivity() {
@@ -39,7 +39,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var contactAppDatabase: ContactsAppDatabase
 
     private val composite = CompositeDisposable()
-//    private lateinit var db: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,11 +53,7 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             ContactsAppDatabase::class.java,
             "ContactDB"
-        ).allowMainThreadQueries().build()
-
-//        db = DatabaseHelper(this)
-
-//        contactArrayList.addAll(db.allContacts)
+        ).build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             composite.add(
@@ -78,14 +73,6 @@ class MainActivity : AppCompatActivity() {
 
                         }
                     )
-//                    .subscribe(object : Consumer<List<Contact>> {
-//                        override fun accept(contacts: List<Contact>) {
-//
-//
-//
-//                        }
-//
-//                    })
             )
         }
 
@@ -144,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                 "Delete"
             ) { dialogBox, id ->
                 if (isUpdate) {
-                    deleteContact(contact!!, position)
+                    deleteContact(contact!!)
                 } else {
 
                     dialogBox.cancel()
@@ -175,12 +162,28 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun deleteContact(contact: Contact, position: Int) {
+    private fun deleteContact(contact: Contact) {
 
-//        contactArrayList.removeAt(position)
-//        db.deleteContact(contact)
-        contactAppDatabase.getContactDAO().deleteContact(contact)
-//        contactsAdapter!!.notifyDataSetChanged()
+        composite.add(
+            Completable.fromAction {
+
+                contactAppDatabase.getContactDAO().deleteContact(contact)
+
+            }.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    {
+
+                        Toast.makeText(this, "Delete successful!", Toast.LENGTH_SHORT).show()
+
+                    },
+                    {
+
+                        Toast.makeText(this, "Delete failed!", Toast.LENGTH_SHORT).show()
+
+                    })
+        )
+
     }
 
     private fun updateContact(name: String, email: String, position: Int) {
@@ -190,26 +193,51 @@ class MainActivity : AppCompatActivity() {
         contact.name = name
         contact.email = email
 
-//        db.updateContact(contact)
-        contactAppDatabase.getContactDAO().updateContact(contact)
+        composite.add(
+            Completable.fromAction {
 
-//        contactArrayList[position] = contact
+                contactAppDatabase.getContactDAO().updateContact(contact)
 
-//        contactsAdapter?.notifyDataSetChanged()
+
+            }.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    {
+
+                        Toast.makeText(this, "Update successful!", Toast.LENGTH_SHORT).show()
+
+                    },
+                    {
+
+                        Toast.makeText(this, "Update failed!", Toast.LENGTH_SHORT).show()
+
+                    })
+        )
 
 
     }
 
     private fun createContact(name: String, email: String) {
 
-//        val id = db.insertContact(name, email)
-        val id = contactAppDatabase.getContactDAO().addContact(Contact(name, email, 0))
+        composite.add(
+            Completable.fromAction {
 
-        //        val contact = db.getContact(id)
-//        val contact = contactAppDatabase.getContactDAO().getContact(id)
-//
-//        contactArrayList.add(0, contact)
-//        contactsAdapter!!.notifyDataSetChanged()
+                contactAppDatabase.getContactDAO().addContact(Contact(name, email, 0))
+
+            }.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    {
+
+                        Toast.makeText(this, "Create successful!", Toast.LENGTH_SHORT).show()
+
+                    },
+                    {
+
+                        Toast.makeText(this, "Create failed!", Toast.LENGTH_SHORT).show()
+
+                    })
+        )
 
 
     }
