@@ -1,11 +1,9 @@
 package com.tranphunguyen.tmdbmovie.view
 
 import android.content.res.Configuration
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.tranphunguyen.tmdbmovie.service.MovieService
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.GridLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -22,31 +20,31 @@ import kotlinx.android.synthetic.main.activity_main.*
 import com.tranphunguyen.tmdbmovie.model.MovieDBResponse
 import com.miguelcatalan.materialsearchview.MaterialSearchView
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.tranphunguyen.tmdbmovie.R
+import com.tranphunguyen.tmdbmovie.viewModel.ViewModelMain
 
 class MainActivity : AppCompatActivity() {
 
     private val movieAdapter = MovieAdapter(ArrayList())
 
-    val service = MovieService.instance
+    private val viewModelMain by lazy {
 
-    //    private var call: Call<MovieDBResponse>? = null
-    private lateinit var movieResObservable: Observable<MovieDBResponse>
+        ViewModelProviders.of(this).get(ViewModelMain::class.java)
 
-    private val compositeDisposable = CompositeDisposable()
-
-    private var page = 1
+    }
 
     override
     fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(com.tranphunguyen.tmdbmovie.R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
 
         getPopularMovieWithRx()
 
-        refresh.setColorSchemeResources(com.tranphunguyen.tmdbmovie.R.color.colorPrimary)
+        refresh.setColorSchemeResources(R.color.colorPrimary)
         refresh.setOnRefreshListener {
 
             getPopularMovieWithRx()
@@ -63,8 +61,7 @@ class MainActivity : AppCompatActivity() {
         movieAdapter.setOnLoadMoreListener(object : OnLoadMoreListener {
             override fun onLoadMore() {
 
-
-                addPopularMovie()
+                getMore()
             }
         })
 
@@ -74,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun searchViewCode() {
-        search_view.setSuggestions(arrayOf("ABC","A","B","aaa"))
+        search_view.setSuggestions(arrayOf("ABC", "A", "B", "aaa"))
         search_view.showSuggestions()
         search_view.setEllipsize(true)
         search_view.setOnQueryTextListener(object : MaterialSearchView.OnQueryTextListener {
@@ -96,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate( R.menu.menu, menu)
+        menuInflater.inflate(R.menu.menu, menu)
 
         val item = menu?.findItem(R.id.action_search)
         search_view.setMenuItem(item)
@@ -115,95 +112,67 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-   /*  private fun getPopularMovie() {
+    /*  private fun getPopularMovie() {
 
-        page++
+         page++
 
-        val service = MovieService.instance
+         val service = MovieService.instance
 
-        call = service.getPopularMovies(page, this.getString(R.string.api_key))
+         call = service.getPopularMovies(page, this.getString(R.string.api_key))
 
-        call?.enqueue(object : Callback<MovieDBResponse> {
-            override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
+         call?.enqueue(object : Callback<MovieDBResponse> {
+             override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
 
-            }
+             }
 
-            override fun onResponse(call: Call<MovieDBResponse>, response: Response<MovieDBResponse>) {
+             override fun onResponse(call: Call<MovieDBResponse>, response: Response<MovieDBResponse>) {
 
-                val movieDBResponse = response.body()
+                 val movieDBResponse = response.body()
 
-                movieDBResponse?.results?.let {
-                    showOnRecyclerView(it)
-                }
+                 movieDBResponse?.results?.let {
+                     showOnRecyclerView(it)
+                 }
 
-            }
+             }
 
-        })
+         })
 
-    }
-    */
+     }
+     */
 
 
     private fun getPopularMovieWithRx() {
 
-        compositeDisposable.add(
-            service
-                .getPopularMoviesWithRx(1, this.getString(com.tranphunguyen.tmdbmovie.R.string.api_key))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
-                .filter { movie -> movie.vote_average > 7.0 }
-                .subscribeWith(object : DisposableObserver<Movie>() {
-                    override fun onComplete() {
-                        showOnRecyclerView()
-                    }
+        viewModelMain.getMovies().observe(this,
 
-                    override fun onNext(movie: Movie) {
-                        movieAdapter.listMovie.add(movie)
-                    }
+            Observer { movies ->
 
-                    override fun onError(e: Throwable) {
-                    }
+                movieAdapter.listMovie = movies as ArrayList<Movie>
 
-                })
+                Log.d("TestMVVM Main1",movieAdapter.listMovie.size.toString())
+                Log.d("TestMVVM Main",movies.size.toString())
+
+                progressbar.visibility = View.GONE
+
+//                movieAdapter.notifyItemInserted(movieAdapter.listMovie.size - 1)
+
+                movieAdapter.notifyDataSetChanged()
+                movieAdapter.setLoaded()
+                movieAdapter.setLoadedProgressBar()
+
+
+
+            }
+
         )
 
-        Log.d("checkComposite", compositeDisposable.size().toString())
+        showOnRecyclerView()
+
     }
 
-    fun addPopularMovie() {
+    fun getMore() {
 
-        compositeDisposable.add(
-            service
-                .getPopularMoviesWithRx(page, this.getString(com.tranphunguyen.tmdbmovie.R.string.api_key))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap { movieRes -> Observable.fromIterable(movieRes.results) }
-                .filter { movie -> movie.vote_average > 7.0 }
-                .subscribeWith(object : DisposableObserver<Movie>() {
-                    override fun onComplete() {
-
-                        progressbar.visibility = View.GONE
-
-                        movieAdapter.notifyItemInserted(movieAdapter.listMovie.size - 1)
-                        movieAdapter.setLoaded()
-                        movieAdapter.setLoadedProgressBar()
-                    }
-
-                    override fun onNext(movie: Movie) {
-                        movieAdapter.listMovie.add(movie)
-                    }
-
-                    override fun onError(e: Throwable) {
-                    }
-
-                })
-        )
-
-        page++
-
-        Log.d("checkComposite", compositeDisposable.size().toString())
-
+        viewModelMain.getMore()
 
     }
 
@@ -211,15 +180,15 @@ class MainActivity : AppCompatActivity() {
 
         if (this.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
 
-            recyclerView.layoutManager = GridLayoutManager(this, 2)
+            recyclerView.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 2)
 
         } else {
 
-            recyclerView.layoutManager = GridLayoutManager(this, 4)
+            recyclerView.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 4)
 
         }
 
-        recyclerView.itemAnimator = DefaultItemAnimator()
+        recyclerView.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
         recyclerView.adapter = movieAdapter
         movieAdapter.notifyDataSetChanged()
 
@@ -250,7 +219,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        compositeDisposable.clear()
+        viewModelMain.clear()
 
 //        call?.let {
 //            if(it.isExecuted)

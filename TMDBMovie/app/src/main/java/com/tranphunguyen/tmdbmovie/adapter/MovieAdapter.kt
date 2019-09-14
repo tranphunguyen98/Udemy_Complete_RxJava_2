@@ -1,9 +1,9 @@
 package com.tranphunguyen.tmdbmovie.adapter
 
 import android.content.Intent
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.item_progressbar.view.*
 /**
  * Created by Trần Phú Nguyện on 7/25/2019.
  */
-class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class MovieAdapter(var listMovie: ArrayList<Movie>) : androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
 
     // for load more
     private val VIEW_TYPE_ITEM = 0
@@ -44,13 +44,14 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
         fun onLoading()
     }
 
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+    override fun onAttachedToRecyclerView(recyclerView: androidx.recyclerview.widget.RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
 
         // load more
-        val linearLayoutManager = recyclerView.layoutManager as GridLayoutManager
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+        val linearLayoutManager = recyclerView.layoutManager as androidx.recyclerview.widget.GridLayoutManager
+
+        recyclerView.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
                 totalItemCount = linearLayoutManager.itemCount
@@ -76,7 +77,7 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
         })
     }
 
-    override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): androidx.recyclerview.widget.RecyclerView.ViewHolder {
 
         when (viewType) {
 
@@ -98,7 +99,6 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
 
 
         }
-
 
     }
 
@@ -123,7 +123,7 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
         return VIEW_TYPE_ITEM
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
 
         when (holder) {
 
@@ -166,13 +166,13 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
 
     }
 
-    private inner class ViewHolderLoading(view: View) : RecyclerView.ViewHolder(view) {
+    private inner class ViewHolderLoading(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
 
         val progressBar = view.progressbar
 
     }
 
-    private inner class MoviewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private inner class MoviewHolder(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
         val ivMovie = view.iv_movie
         val tvTitle = view.tv_title
         val tvRating = view.tv_rating
@@ -182,7 +182,7 @@ class MovieAdapter(var listMovie: ArrayList<Movie>) : RecyclerView.Adapter<Recyc
 
                 val position = this.adapterPosition
 
-                if (position != RecyclerView.NO_POSITION) {
+                if (position != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
 
                     val intent = Intent(view.context, MovieActivity::class.java)
 

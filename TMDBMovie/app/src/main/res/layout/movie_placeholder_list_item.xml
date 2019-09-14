@@ -8,7 +8,7 @@
               android:weightSum="2"
 >
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
             android:id="@+id/cvMovie1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -55,8 +55,8 @@
 
         </RelativeLayout>
 
-    </android.support.v7.widget.CardView>
-    <android.support.v7.widget.CardView
+    </androidx.cardview.widget.CardView>
+    <androidx.cardview.widget.CardView
             android:id="@+id/cvMovie"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -102,6 +102,6 @@
 
         </RelativeLayout>
 
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

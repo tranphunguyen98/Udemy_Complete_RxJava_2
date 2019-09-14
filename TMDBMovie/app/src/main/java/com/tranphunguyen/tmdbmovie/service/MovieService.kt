@@ -4,7 +4,6 @@ import android.util.Log
 import com.tranphunguyen.tmdbmovie.model.MovieDBResponse
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
-import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory

@@ -23,11 +23,11 @@
 package com.tranphunguyen.tmdbmovie.test
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ItemTouchHelper
 import android.view.Menu
 import android.view.MenuItem
 import com.tranphunguyen.tmdbmovie.R
@@ -39,9 +39,9 @@ class MainActivity : AppCompatActivity(), ImageRequester.ImageRequesterResponse 
 
   private var photosList: ArrayList<Photo> = ArrayList()
   private lateinit var imageRequester: ImageRequester
-  private lateinit var linearLayoutManager: LinearLayoutManager
+  private lateinit var linearLayoutManager: androidx.recyclerview.widget.LinearLayoutManager
   private lateinit var adapter: RecyclerAdapter
-  private lateinit var gridLayoutManager: GridLayoutManager
+  private lateinit var gridLayoutManager: androidx.recyclerview.widget.GridLayoutManager
 
   private val lastVisibleItemPosition: Int
     get() = if (recyclerView.layoutManager == linearLayoutManager) {
@@ -54,12 +54,16 @@ class MainActivity : AppCompatActivity(), ImageRequester.ImageRequesterResponse 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
-    linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+    linearLayoutManager = androidx.recyclerview.widget.LinearLayoutManager(
+        this,
+        androidx.recyclerview.widget.LinearLayoutManager.VERTICAL,
+        false
+    )
     recyclerView.layoutManager = linearLayoutManager
     adapter = RecyclerAdapter(photosList)
     recyclerView.adapter = adapter
     setRecyclerViewScrollListener()
-    gridLayoutManager = GridLayoutManager(this, 2)
+    gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 2)
     setRecyclerViewItemTouchListener()
 
 
@@ -81,8 +85,8 @@ class MainActivity : AppCompatActivity(), ImageRequester.ImageRequesterResponse 
   }
 
   private fun setRecyclerViewScrollListener() {
-    recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-      override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+    recyclerView.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+      override fun onScrollStateChanged(recyclerView: androidx.recyclerview.widget.RecyclerView, newState: Int) {
         super.onScrollStateChanged(recyclerView, newState)
         val totalItemCount = recyclerView.layoutManager!!.itemCount
         if (!imageRequester.isLoadingData && totalItemCount == lastVisibleItemPosition + 1) {
@@ -96,12 +100,12 @@ class MainActivity : AppCompatActivity(), ImageRequester.ImageRequesterResponse 
 
     //1
     val itemTouchCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-      override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, viewHolder1: RecyclerView.ViewHolder): Boolean {
+      override fun onMove(recyclerView: androidx.recyclerview.widget.RecyclerView, viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, viewHolder1: androidx.recyclerview.widget.RecyclerView.ViewHolder): Boolean {
         //2
         return false
       }
 
-      override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
+      override fun onSwiped(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, swipeDir: Int) {
         //3
         val position = viewHolder.adapterPosition
         photosList.removeAt(position)
