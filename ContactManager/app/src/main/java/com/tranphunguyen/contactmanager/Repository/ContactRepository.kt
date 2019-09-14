@@ -19,7 +19,6 @@ import io.reactivex.schedulers.Schedulers
 
 class ContactRepository(private val application: Application) {
 
-
     private val disposables = CompositeDisposable()
     val contactsLiveData = MutableLiveData<List<Contact>>()
 
@@ -70,7 +69,6 @@ class ContactRepository(private val application: Application) {
                         override fun onComplete() {
 
                             Toast.makeText(application.applicationContext, "Create successful!", Toast.LENGTH_SHORT).show()
-
 
                         }
 
